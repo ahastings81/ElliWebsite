@@ -138,6 +138,7 @@
       box-shadow: 0 0 30px rgba(87, 255, 132, 0.18);
       color: var(--accent);
       font-weight: 800;
+      overflow: hidden;
     }
 
     .nav-links {
@@ -147,6 +148,7 @@
       color: var(--muted);
       opacity: 0.95;
       font-size: 0.84rem;
+      flex-wrap: wrap;
     }
 
     .nav-links a:hover {
@@ -503,115 +505,64 @@
       padding: 1.5rem;
     }
 
-    .video-shell {
+    .video-embed-wrap {
+      position: relative;
+      width: 100%;
       aspect-ratio: 16 / 9;
       border-radius: 22px;
-      border: 1px solid var(--border-strong);
-      display: grid;
-      place-items: center;
-      background:
-        radial-gradient(circle at center, rgba(87, 255, 132, 0.12), rgba(87, 255, 132, 0.02) 40%, transparent 60%),
-        linear-gradient(135deg, rgba(12, 23, 34, 0.92), rgba(7, 14, 21, 0.95));
-      position: relative;
       overflow: hidden;
-      text-decoration: none;
-    }
-
-    .video-shell::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: linear-gradient(rgba(87, 255, 132, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(87, 255, 132, 0.045) 1px, transparent 1px);
-      background-size: 24px 24px;
-      opacity: 0.35;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .play {
-      width: 94px;
-      height: 94px;
-      border-radius: 50%;
       border: 1px solid var(--border-strong);
-      background: rgba(18, 45, 26, 0.92);
-      display: grid;
-      place-items: center;
-      box-shadow: 0 0 40px rgba(87, 255, 132, 0.18);
-      z-index: 3;
-      position: relative;
+      background:
+        radial-gradient(circle at center, rgba(87, 255, 132, 0.08), rgba(87, 255, 132, 0.01) 40%, transparent 60%),
+        linear-gradient(135deg, rgba(12, 23, 34, 0.92), rgba(7, 14, 21, 0.95));
+      box-shadow: 0 0 30px rgba(87,255,132,0.12);
     }
 
-    .play::before {
-      content: "";
-      margin-left: 6px;
-      width: 0;
-      height: 0;
-      border-top: 14px solid transparent;
-      border-bottom: 14px solid transparent;
-      border-left: 24px solid var(--accent);
-    }
-
-    .video-thumb {
+    .video-embed-wrap iframe {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      border: 0;
       z-index: 0;
-      opacity: 0.78;
     }
 
-    .video-overlay {
+    .video-embed-wrap::before {
+      content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.45));
-      z-index: 2;
+      background-image:
+        linear-gradient(rgba(87, 255, 132, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(87, 255, 132, 0.035) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.25;
       pointer-events: none;
+      z-index: 1;
     }
 
-    .video-caption {
+    .video-embed-wrap::after {
+      content: "";
       position: absolute;
-      left: 1rem;
-      right: 1rem;
-      bottom: 1rem;
-      z-index: 3;
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 1rem;
+      inset: 0;
+      box-shadow: inset 0 0 0 1px rgba(87,255,132,0.08);
       pointer-events: none;
+      z-index: 1;
     }
 
-    .video-caption-text small {
-      display: block;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.72rem;
-      margin-bottom: 0.2rem;
-    }
-
-    .video-caption-text strong {
-      display: block;
-      color: var(--text);
-      font-size: 1rem;
-    }
-
-    .video-caption-text span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.82rem;
-      margin-top: 0.2rem;
-    }
-
-    .video-open {
-      color: var(--text);
-      border: 1px solid var(--border-strong);
-      background: rgba(8, 20, 12, 0.82);
-      padding: 0.5rem 0.8rem;
+    .video-demo-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 2;
+      padding: 6px 12px;
+      font-size: 12px;
       border-radius: 999px;
-      font-size: 0.78rem;
-      white-space: nowrap;
+      border: 1px solid rgba(87,255,132,0.45);
+      background: rgba(5,20,10,0.8);
+      color: #8dffad;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      pointer-events: none;
     }
 
     .split-grid,
@@ -1042,36 +993,23 @@
       <div class="container">
         <div class="section-head">
           <span class="eyebrow">See Elli in Action</span>
-          <h2>This is what AI looks like when it stops acting like a temporary chat box.</h2>
+          <h2>Show people what AI looks like when it stops acting like a temporary chat box.</h2>
           <p>
-            <p>
-			See Elli in action. This short demo shows how workflows, recall, and multi-model comparison work together inside a persistent AI environment.
-			</p>
+            See Elli in action. This demo shows how workflows, recall, and multi-model comparison work together inside a persistent AI environment.
           </p>
         </div>
 
         <div class="video-card card">
-          <div class="video-shell">
-
-			<iframe
-			  width="100%"
-			  height="100%"
-			  src="https://www.youtube.com/embed/jpORCrh89DM"
-			  title="Elli Product Demo"
-			  frameborder="0"
-			  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-			  allowfullscreen
-			  style="
-				position:absolute;
-				top:0;
-				left:0;
-				width:100%;
-				height:100%;
-				border-radius:22px;
-			  ">
-			</iframe>
-
-		  </div>
+          <div class="video-embed-wrap">
+            <iframe
+              src="https://www.youtube.com/embed/jpORCrh89DM?modestbranding=1&rel=0"
+              title="Elli Product Demo"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen>
+            </iframe>
+            <div class="video-demo-badge">Embedded Demo</div>
+          </div>
         </div>
       </div>
     </section>
@@ -1164,8 +1102,8 @@
           <span class="eyebrow">Architecture</span>
           <h2>Elli acts as the orchestration layer between your memory, workflows, tools, and models.</h2>
           <p>
-		  Elli sits between your projects, tools, and AI models. Workflows define scope, recall preserves knowledge, and the Multi-LLM Lab compares results to select the strongest response.
-		  </p>
+            Elli sits between your projects, tools, and AI models. Workflows define scope, recall preserves knowledge, and the Multi-LLM Lab compares results to select the strongest response.
+          </p>
         </div>
 
         <div class="architecture">
@@ -1322,10 +1260,10 @@
       <div class="container">
         <div class="section-head">
           <span class="eyebrow">Pricing Direction</span>
-          <h2>Two ways to start using Elli.</h2>
+          <h2>Simple pricing for a powerful personal AI environment.</h2>
           <p>
-		  Elli is currently in active development. Early followers can watch the build evolve while the full system and pricing model take shape.
-		  </p>
+            Elli is currently in active development. Early followers can watch the build evolve while the full system and pricing model take shape.
+          </p>
         </div>
 
         <div class="pricing-grid">
@@ -1418,9 +1356,7 @@
           </div>
           <div class="card">
             <h3>Is Elli live yet?</h3>
-            <p>
-			Yes. Elli is actively being developed and demonstrated. Follow the build or join the early access list to see new features as they are released.
-			</p>
+            <p>Yes. Elli is actively being developed and demonstrated. Follow the build or join the early access list to see new features as they are released.</p>
           </div>
         </div>
       </div>
@@ -1435,7 +1371,7 @@
             Join the early access list, follow the build, and be first to see new Elli demos as the system grows.
           </p>
 
-          <div class="waitlist-count">Early Access Users: 11</div>
+          <div class="waitlist-count">Early Access Users: 1,248</div>
 
           <form name="elli-waitlist" method="POST" data-netlify="true" action="/thankyou.html" class="waitlist-form">
             <input type="hidden" name="form-name" value="elli-waitlist">
