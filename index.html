@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elli — Personal AI Operating Environment</title>
+  <meta
+    name="description"
+    content="Elli is a personal AI operating environment built around workflows, scoped tools, persistent recall, and multi-model orchestration."
+  />
+  <link rel="icon" type="image/x-icon" href="elli_matrix_green.ico" />
+
+  <style>
+    :root {
+      --bg: #020603;
+      --bg-alt: #07110b;
+      --panel: rgba(12, 32, 18, 0.92);
+      --panel-strong: rgba(10, 28, 16, 0.96);
+      --border: rgba(87, 255, 132, 0.32);
+      --border-strong: rgba(87, 255, 132, 0.55);
+      --text: #f2fff6;
+      --muted: #c9f5d5;
+      --accent: #5bff8f;
+      --accent-2: #2dff73;
+      --success: #8dffad;
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+      --max: 1180px;
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(87, 255, 132, 0.12), transparent 32%),
+        radial-gradient(circle at top right, rgba(29, 209, 90, 0.16), transparent 28%),
+        linear-gradient(180deg, #010402 0%, #030806 50%, #05110a 100%);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(87, 255, 132, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(87, 255, 132, 0.035) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 85%);
+      z-index: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: min(calc(100% - 2rem), var(--max));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: rgba(10, 22, 32, 0.78);
+      color: var(--accent);
+      font-size: 0.84rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(87, 255, 132, 0.8);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      background: rgba(4, 10, 15, 0.65);
+      border-bottom: 1px solid rgba(87, 255, 132, 0.08);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-mark {
+      width: 2.35rem;
+      height: 2.35rem;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(87, 255, 132, 0.22), rgba(29, 209, 90, 0.18));
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 0 30px rgba(87, 255, 132, 0.18);
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      color: var(--muted);
+      opacity: 0.95;
+      font-size: 0.84rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      min-height: 50px;
+      padding: 0 1.3rem;
+      border-radius: 14px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #7ff1ff);
+      color: #031017;
+      box-shadow: 0 12px 30px rgba(87, 255, 132, 0.22);
+    }
+
+    .btn-secondary {
+      border-color: var(--border-strong);
+      background: rgba(12, 24, 35, 0.66);
+      color: var(--text);
+    }
+
+    section {
+      padding: 5.5rem 0;
+    }
+
+    .hero {
+      padding-top: 5rem;
+      padding-bottom: 4rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(2.6rem, 6vw, 5.2rem);
+      line-height: 0.96;
+      margin: 1.1rem 0 1.2rem;
+      letter-spacing: -0.045em;
+    }
+
+    .hero-copy h1 .accent {
+      color: var(--accent);
+      text-shadow: 0 0 34px rgba(87, 255, 132, 0.18);
+    }
+
+    .hero-copy p {
+      color: var(--muted);
+      font-size: 1.08rem;
+      max-width: 720px;
+      margin-bottom: 1.6rem;
+    }
+
+    .hero-points {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .mini-card,
+    .card,
+    .feature,
+    .step,
+    .quote,
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow), 0 0 25px rgba(87,255,132,0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .mini-card {
+      border-radius: 18px;
+      padding: 1rem;
+    }
+
+    .mini-card h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .mini-card p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hero-visual {
+      position: relative;
+    }
+
+    .dashboard-card {
+      min-height: 560px;
+      padding: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .dashboard-card::before,
+    .dashboard-card::after {
+      display: none;
+    }
+
+    .dashboard-shot {
+      width: 100%;
+      height: auto;
+      max-height: 90%;
+      object-fit: contain;
+      object-position: center top;
+      display: block;
+      border-radius: 22px;
+      box-shadow: 0 0 40px rgba(87,255,132,0.25);
+    }
+
+    .dashboard-badge {
+      position: absolute;
+      top: 26px;
+      left: 26px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(87,255,132,0.45);
+      background: rgba(5,20,10,0.8);
+      color: #8dffad;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+
+    .orb-card {
+      position: relative;
+      min-height: 560px;
+      border-radius: 30px;
+      padding: 1.5rem;
+      background: linear-gradient(180deg, rgba(5, 15, 9, 0.96), rgba(3, 10, 6, 0.97));
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 35px rgba(87,255,132,0.15);
+      overflow: hidden;
+    }
+
+    .orb-card::before,
+    .orb-card::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(16px);
+    }
+
+    .orb-card::before {
+      width: 220px;
+      height: 220px;
+      top: -50px;
+      right: -40px;
+      background: rgba(87, 255, 132, 0.16);
+    }
+
+    .orb-card::after {
+      width: 180px;
+      height: 180px;
+      bottom: -40px;
+      left: -30px;
+      background: rgba(29, 209, 90, 0.16);
+    }
+
+    .system-ui {
+      position: absolute;
+      inset: 0;
+      padding: 1.3rem;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(8, 16, 24, 0.72);
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: var(--success);
+      box-shadow: 0 0 16px rgba(141, 255, 173, 0.8);
+    }
+
+    .center-orb {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      border: 1px solid rgba(66, 232, 255, 0.28);
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, rgba(87, 255, 132, 0.2), rgba(66, 232, 255, 0.04) 48%, transparent 70%),
+        radial-gradient(circle at 55% 40%, rgba(29, 209, 90, 0.14), transparent 52%);
+      box-shadow:
+        inset 0 0 40px rgba(87, 255, 132, 0.16),
+        0 0 70px rgba(87, 255, 132, 0.15);
+    }
+
+    .center-orb::before,
+    .center-orb::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(87, 255, 132, 0.2);
+    }
+
+    .center-orb::before {
+      inset: 18px;
+    }
+
+    .center-orb::after {
+      inset: -18px;
+      border-style: dashed;
+      opacity: 0.75;
+    }
+
+    .node {
+      position: absolute;
+      width: 112px;
+      padding: 0.8rem;
+      border-radius: 18px;
+      background: rgba(14, 40, 22, 0.92);
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+      text-align: center;
+    }
+
+    .node strong {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .node span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .node.one { top: 92px; left: 16px; }
+    .node.two { top: 92px; right: 16px; }
+    .node.three { bottom: 160px; left: 16px; }
+    .node.four { bottom: 160px; right: 16px; }
+
+    .connector {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(87, 255, 132, 0.45), transparent);
+      transform-origin: left center;
+      opacity: 0.7;
+    }
+
+    .connector.c1 { width: 122px; top: 158px; left: 106px; transform: rotate(20deg); }
+    .connector.c2 { width: 122px; top: 158px; right: 106px; transform: rotate(-20deg); }
+    .connector.c3 { width: 110px; bottom: 210px; left: 96px; transform: rotate(-12deg); }
+    .connector.c4 { width: 110px; bottom: 210px; right: 96px; transform: rotate(12deg); }
+
+    .floating-panel {
+      position: absolute;
+      left: 0.9rem;
+      right: 0.9rem;
+      bottom: 0.4rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.45rem;
+    }
+
+    .floating-panel .stat {
+      border-radius: 10px;
+      padding: 0.45rem;
+      background: rgba(14, 40, 22, 0.92);
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.18rem;
+      font-size: 0.64rem;
+    }
+
+    .stat strong {
+      font-size: 0.76rem;
+      color: var(--text);
+    }
+
+    .section-head {
+      max-width: 760px;
+      margin-bottom: 2rem;
+    }
+
+    .section-head h2 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.03;
+      letter-spacing: -0.04em;
+      margin: 0.8rem 0 0.8rem;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      font-size: 1.04rem;
+    }
+
+    .video-card,
+    .card {
+      border-radius: 26px;
+      padding: 1.5rem;
+    }
+
+    .video-shell {
+      aspect-ratio: 16 / 9;
+      border-radius: 22px;
+      border: 1px solid var(--border-strong);
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, rgba(87, 255, 132, 0.12), rgba(87, 255, 132, 0.02) 40%, transparent 60%),
+        linear-gradient(135deg, rgba(12, 23, 34, 0.92), rgba(7, 14, 21, 0.95));
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+    }
+
+    .video-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(87, 255, 132, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(87, 255, 132, 0.045) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.35;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .play {
+      width: 94px;
+      height: 94px;
+      border-radius: 50%;
+      border: 1px solid var(--border-strong);
+      background: rgba(18, 45, 26, 0.92);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 40px rgba(87, 255, 132, 0.18);
+      z-index: 3;
+      position: relative;
+    }
+
+    .play::before {
+      content: "";
+      margin-left: 6px;
+      width: 0;
+      height: 0;
+      border-top: 14px solid transparent;
+      border-bottom: 14px solid transparent;
+      border-left: 24px solid var(--accent);
+    }
+
+    .video-thumb {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      opacity: 0.78;
+    }
+
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.45));
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .video-caption {
+      position: absolute;
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 3;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      pointer-events: none;
+    }
+
+    .video-caption-text small {
+      display: block;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.72rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .video-caption-text strong {
+      display: block;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .video-caption-text span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 0.2rem;
+    }
+
+    .video-open {
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      background: rgba(8, 20, 12, 0.82);
+      padding: 0.5rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .split-grid,
+    .features-grid,
+    .steps-grid,
+    .quotes-grid,
+    .pricing-grid {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .split-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .features-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .steps-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .quotes-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pricing-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+    }
+
+    .card h3,
+    .feature h3,
+    .step h3,
+    .quote h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p,
+    .feature p,
+    .step p,
+    .quote p,
+    .pricing-card p,
+    .list li {
+      color: var(--muted);
+    }
+
+    .feature,
+    .step,
+    .quote,
+    .pricing-card {
+      border-radius: 22px;
+      padding: 1.35rem;
+    }
+
+    .feature-icon,
+    .step-num {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 1rem;
+      background: rgba(66, 232, 255, 0.1);
+      border: 1px solid var(--border-strong);
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .kicker {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .list {
+      list-style: none;
+      display: grid;
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    .list li {
+      position: relative;
+      padding-left: 1.3rem;
+    }
+
+    .list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.58rem;
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(87, 255, 132, 0.65);
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: 1fr 0.9fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .pricing-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow), 0 0 25px rgba(87,255,132,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--border-strong);
+      transform: scale(1.01);
+    }
+
+    .pricing-card .tag {
+      display: inline-flex;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      color: var(--accent);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+
+    .price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .price span {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .quote {
+      min-height: 100%;
+    }
+
+    .quote p:first-of-type {
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .quote .who {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .cta-box {
+      border-radius: 30px;
+      padding: 2rem;
+      background:
+        radial-gradient(circle at top left, rgba(87, 255, 132, 0.15), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(29, 209, 90, 0.14), transparent 24%),
+        linear-gradient(180deg, rgba(9, 19, 29, 0.96), rgba(7, 14, 20, 0.96));
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow), 0 0 25px rgba(87,255,132,0.12);
+      text-align: center;
+    }
+
+    .cta-box h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      margin-bottom: 0.8rem;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .cta-box p {
+      color: var(--muted);
+      max-width: 760px;
+      margin: 0 auto 1.3rem;
+    }
+
+    .waitlist-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: rgba(8, 20, 12, 0.82);
+      color: var(--accent);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      box-shadow: 0 0 24px rgba(87,255,132,0.12);
+    }
+
+    .waitlist-form {
+      margin-top: 20px;
+    }
+
+    .waitlist-form-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .waitlist-input {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(87,255,132,0.35);
+      background: #06120b;
+      color: #eafff1;
+      min-width: 260px;
+      outline: none;
+    }
+
+    .waitlist-input:focus {
+      border-color: rgba(87,255,132,0.7);
+      box-shadow: 0 0 0 3px rgba(87,255,132,0.12);
+    }
+
+    .growth-tip {
+      display: block;
+      margin-top: 0.8rem;
+      color: #8dffad;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      padding: 2rem 0 3rem;
+      color: var(--muted);
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      border-top: 1px solid rgba(87, 255, 132, 0.08);
+      padding-top: 1.4rem;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .split-grid,
+      .architecture,
+      .pricing-grid,
+      .features-grid,
+      .steps-grid,
+      .quotes-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-points {
+        grid-template-columns: 1fr;
+      }
+
+      .orb-card {
+        min-height: 660px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+      }
+
+      section {
+        padding: 4rem 0;
+      }
+
+      .hero {
+        padding-top: 3.6rem;
+      }
+
+      .orb-card {
+        min-height: 760px;
+      }
+
+      .node {
+        position: static;
+        width: 100%;
+      }
+
+      .system-ui {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .center-orb {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        margin: 1rem auto;
+        width: 220px;
+        height: 220px;
+      }
+
+      .center-orb img {
+        animation: elliPulse 4s ease-in-out infinite;
+      }
+
+      @keyframes elliPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+      }
+
+      .connector {
+        display: none;
+      }
+
+      .floating-panel {
+        position: static;
+        grid-template-columns: 1fr;
+        margin-top: auto;
+      }
+
+      .hero-copy h1 {
+        font-size: clamp(2.3rem, 12vw, 4rem);
+      }
+
+      .footer-row {
+        flex-direction: column;
+      }
+
+      .waitlist-form-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .waitlist-input {
+        min-width: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#top">
+        <span class="brand-mark">
+          <img src="elli_matrix_green_1024.png" alt="Elli Logo" style="width:100%;height:100%;object-fit:contain;">
+        </span>
+        <span>Elli</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#how">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://a-a-rons-devspace.netlify.app/" target="_blank" rel="noopener noreferrer">Dev Portfolio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Personal AI Operating Environment</span>
+          <h1>
+            Your memory-aware,
+            <span class="accent">multi-model</span>
+            AI workspace.
+          </h1>
+          <p>
+            Elli gives you a persistent AI environment built around real workflows, scoped tools, and structured recall. Instead of starting over in every chat, Elli remembers what matters, works inside active project contexts, and coordinates the best model for the job.
+          </p>
+          <div class="btn-group">
+            <a class="btn btn-primary" href="#cta">Get Early Access</a>
+            <a class="btn btn-secondary" href="#demo">Watch Demo</a>
+          </div>
+
+          <div class="hero-points">
+            <div class="mini-card">
+              <h4>Persistent Recall</h4>
+              <p>Carry context across threads, projects, and pinned canonical knowledge.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Workflow Scoped</h4>
+              <p>Give Elli only the files, apps, and tools relevant to the task at hand.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Model Agnostic</h4>
+              <p>Use compatible AI APIs without locking your assistant to one provider.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="orb-card dashboard-card">
+            <img
+              src="Darkmode.png"
+              alt="Elli AI Operating Environment Dashboard"
+              class="dashboard-shot"
+            />
+            <div class="dashboard-badge">Elli Live Interface</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">See Elli in Action</span>
+          <h2>This is what AI looks like when it stops acting like a temporary chat box.</h2>
+          <p>
+            <p>
+			See Elli in action. This short demo shows how workflows, recall, and multi-model comparison work together inside a persistent AI environment.
+			</p>
+          </p>
+        </div>
+
+        <div class="video-card card">
+          <div class="video-shell">
+
+			<iframe
+			  width="100%"
+			  height="100%"
+			  src="https://www.youtube.com/embed/jpORCrh89DM"
+			  title="Elli Product Demo"
+			  frameborder="0"
+			  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+			  allowfullscreen
+			  style="
+				position:absolute;
+				top:0;
+				left:0;
+				width:100%;
+				height:100%;
+				border-radius:22px;
+			  ">
+			</iframe>
+
+		  </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container split-grid">
+        <div class="card">
+          <div class="kicker">The Problem</div>
+          <h3>Most AI assistants forget everything that matters.</h3>
+          <p>
+            Traditional AI tools are tied to a single model, a single conversation, and a shallow sense of context. They can answer questions, but they cannot maintain project continuity, manage long-term recall, or operate cleanly inside real working environments.
+          </p>
+          <ul class="list">
+            <li>One chat at a time</li>
+            <li>No real project memory</li>
+            <li>Weak continuity across threads</li>
+            <li>Locked to one provider or model family</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="kicker">The Elli Solution</div>
+          <h3>Elli turns AI into a working environment.</h3>
+          <p>
+            Elli separates intelligence from the model layer and wraps it in a persistent system built around workflows, scoped tools, structured memory, and multi-model decision routing. The result is an AI environment that can stay informed, stay organized, and stay useful over time.
+          </p>
+          <ul class="list">
+            <li>Persistent recall across projects</li>
+            <li>Scoped access to tools and files</li>
+            <li>Multi-model comparison and coordination</li>
+            <li>Canonical memory pinning for durable knowledge</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Core Features</span>
+          <h2>Built for real work, not just better chat.</h2>
+          <p>
+            Elli brings together the strongest parts of recall, workflow control, and model orchestration into a single personal AI system.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature">
+            <div class="feature-icon">🧠</div>
+            <h3>Persistent Recall System</h3>
+            <p>Maintain long-term memory across threads, projects, and pinned canonical knowledge.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon">🔁</div>
+            <h3>Multi-Model AI Lab</h3>
+            <p>Compare outputs across multiple AI APIs and choose the strongest answer for the situation.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon">📁</div>
+            <h3>Workflow-Based Project Scope</h3>
+            <p>Define which files, applications, websites, and tools are available for each active workflow.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon">🤖</div>
+            <h3>Agent Coordination</h3>
+            <p>Route tasks through different roles, models, and agents while retaining shared project memory.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon">📌</div>
+            <h3>Canonical Knowledge Pinning</h3>
+            <p>Promote valuable replies, decisions, and discoveries into memory that persists going forward.</p>
+          </article>
+
+          <article class="feature">
+            <div class="feature-icon">🔌</div>
+            <h3>Model-Agnostic Architecture</h3>
+            <p>Use compatible AI providers without rebuilding your assistant every time the model landscape changes.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Architecture</span>
+          <h2>Elli acts as the orchestration layer between your memory, workflows, tools, and models.</h2>
+          <p>
+		  Elli sits between your projects, tools, and AI models. Workflows define scope, recall preserves knowledge, and the Multi-LLM Lab compares results to select the strongest response.
+		  </p>
+        </div>
+
+        <div class="architecture">
+          <div class="hero-visual">
+            <div class="orb-card">
+              <div class="system-ui">
+                <div class="hud-top">
+                  <span>Elli Orchestration Layer</span>
+                  <span class="status-pill">System Online</span>
+                </div>
+
+                <div class="node one">
+                  <strong>Recall</strong>
+                  <span>Threads • Projects • Canon</span>
+                </div>
+                <div class="node two">
+                  <strong>TaskDeck</strong>
+                  <span>Apps • Files • URLs</span>
+                </div>
+                <div class="node three">
+                  <strong>Agents</strong>
+                  <span>Roles • Tasks • Routing</span>
+                </div>
+                <div class="node four">
+                  <strong>Multi-LLM Lab</strong>
+                  <span>Compare • Pin • Decide</span>
+                </div>
+
+                <div class="connector c1"></div>
+                <div class="connector c2"></div>
+                <div class="connector c3"></div>
+                <div class="connector c4"></div>
+
+                <div class="center-orb">
+                  <img
+                    src="face_idle.png"
+                    alt="Elli Avatar"
+                    style="
+                      width:160px;
+                      height:160px;
+                      object-fit:cover;
+                      border-radius:50%;
+                      filter:brightness(1.1) contrast(1.1);
+                      box-shadow:0 0 30px rgba(87,255,132,0.4);
+                    "
+                  >
+                </div>
+
+                <div class="floating-panel">
+                  <div class="stat">
+                    <small>Active Project</small>
+                    <strong>Elli Product Site</strong>
+                  </div>
+                  <div class="stat">
+                    <small>Current Mode</small>
+                    <strong>Compare + Recall</strong>
+                  </div>
+                  <div class="stat">
+                    <small>Memory State</small>
+                    <strong>Canonical Knowledge Loaded</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="kicker">Why It Matters</div>
+            <h3>AI becomes more useful when it has structure.</h3>
+            <p>
+              Elli is designed around a simple idea: intelligence is stronger when it has memory, constraints, and access to the right tools. By separating model choice from the assistant itself, Elli can adapt as the AI ecosystem changes while still preserving continuity for the user.
+            </p>
+            <ul class="list">
+              <li>Better long-term usefulness</li>
+              <li>Cleaner project boundaries</li>
+              <li>Higher-quality model selection</li>
+              <li>Less context loss over time</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">How It Works</span>
+          <h2>A simple system on the surface. A powerful architecture underneath.</h2>
+          <p>
+            Elli is easy to explain in four steps.
+          </p>
+        </div>
+
+        <div class="steps-grid">
+          <article class="step">
+            <div class="step-num">1</div>
+            <h3>Choose a Workflow</h3>
+            <p>Set the active project context by selecting the files, tools, apps, and sites that matter.</p>
+          </article>
+
+          <article class="step">
+            <div class="step-num">2</div>
+            <h3>Run the Task</h3>
+            <p>Elli uses the active scope to keep the AI grounded inside the real environment.</p>
+          </article>
+
+          <article class="step">
+            <div class="step-num">3</div>
+            <h3>Compare and Decide</h3>
+            <p>Use the Multi-LLM Lab to evaluate responses across models and choose the strongest result.</p>
+          </article>
+
+          <article class="step">
+            <div class="step-num">4</div>
+            <h3>Pin to Memory</h3>
+            <p>Save the best outputs into canonical recall so Elli becomes more informed going forward.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Why I Built It</span>
+          <h2>Elli combines three of my systems into one architecture.</h2>
+          <p>
+            Elli is the culmination of multiple projects merging into a single personal AI environment built to demonstrate modular system design, persistent memory, and multi-model coordination.
+          </p>
+        </div>
+
+        <div class="split-grid">
+          <div class="card">
+            <h3>YoChet → Elli Core</h3>
+            <p>The conversational assistant evolved into a broader AI operating environment with more structure, more flexibility, and a much stronger system identity.</p>
+          </div>
+          <div class="card">
+            <h3>CodeVault → Recall</h3>
+            <p>The idea of organized, searchable storage became Elli’s structured recall system for reusable knowledge and project continuity.</p>
+          </div>
+          <div class="card">
+            <h3>TaskDeck → Workflow Layer</h3>
+            <p>Workflow-driven context became the foundation for scoping tools, files, apps, and websites inside active project environments.</p>
+          </div>
+          <div class="card">
+            <h3>Result → AI Operating Environment</h3>
+            <p>Together these systems create something bigger than chat: a memory-aware, workflow-driven orchestration layer for real productivity.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Pricing Direction</span>
+          <h2>Two ways to start using Elli.</h2>
+          <p>
+		  Elli is currently in active development. Early followers can watch the build evolve while the full system and pricing model take shape.
+		  </p>
+        </div>
+
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <span class="tag">Early Access</span>
+            <h3>Follow the Build</h3>
+            <div class="price">Free <span>for now</span></div>
+            <p>Best for early followers who want product updates, demos, and launch news while Elli is still evolving.</p>
+            <ul class="list">
+              <li>Demo updates</li>
+              <li>Architecture posts</li>
+              <li>Launch announcements</li>
+              <li>Early product visibility</li>
+            </ul>
+            <a class="btn btn-secondary"
+               href="https://www.linkedin.com/in/aaron-hastings-81304032b/"
+               target="_blank"
+               rel="noopener noreferrer">
+              Follow the Build
+            </a>
+          </div>
+
+          <div class="pricing-card featured">
+            <span class="tag">Planned Direction</span>
+            <h3>Elli Core</h3>
+            <div class="price">$19<span>/month target</span></div>
+            <p>Positioned as a personal AI operating environment with multi-model coordination, workflow memory, and long-term recall.</p>
+            <ul class="list">
+              <li>Persistent recall</li>
+              <li>Workflow-based AI context</li>
+              <li>Model-agnostic orchestration</li>
+              <li>Growing tool and agent ecosystem</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Future Vision</span>
+          <h2>The long-term goal is simple: turn AI from a chatbot into a real operating system for thought and work.</h2>
+          <p>
+            Elli is headed toward a future where memory, workflows, models, and tools all work together inside one coordinated environment—something closer to a personal AI OS than a chat tab.
+          </p>
+        </div>
+
+        <div class="quotes-grid">
+          <article class="quote">
+            <h3>For Builders</h3>
+            <p>Elli gives technical users a system for working with AI across projects instead of resetting context every time they open a new thread.</p>
+            <div class="who">Developers · Founders · Power Users</div>
+          </article>
+
+          <article class="quote">
+            <h3>For Multi-Model Work</h3>
+            <p>Elli is designed for a future where the best result may come from different models, not just the one a platform defaults to.</p>
+            <div class="who">Compare · Route · Pin</div>
+          </article>
+
+          <article class="quote">
+            <h3>For the Long Game</h3>
+            <p>Elli is about continuity: keeping useful knowledge alive and useful across time, projects, and evolving tools.</p>
+            <div class="who">Memory · Structure · Direction</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">FAQ</span>
+          <h2>Quick answers.</h2>
+        </div>
+
+        <div class="split-grid">
+          <div class="card">
+            <h3>Is Elli tied to one AI model?</h3>
+            <p>No. Elli is built to be model agnostic, which means she can work with compatible AI APIs instead of being locked to a single provider.</p>
+          </div>
+          <div class="card">
+            <h3>What makes Elli different from normal AI chat?</h3>
+            <p>Elli adds persistent recall, workflow-based project context, scoped tools, and model orchestration on top of standard chat behavior.</p>
+          </div>
+          <div class="card">
+            <h3>Who is Elli for?</h3>
+            <p>Elli is especially compelling for developers, builders, creators, and technical users who want more continuity and control from AI.</p>
+          </div>
+          <div class="card">
+            <h3>Is Elli live yet?</h3>
+            <p>
+			Yes. Elli is actively being developed and demonstrated. Follow the build or join the early access list to see new features as they are released.
+			</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="cta">
+      <div class="container">
+        <div class="cta-box">
+          <span class="eyebrow">Get Early Access</span>
+          <h2>Follow Elli as she evolves from assistant to operating environment.</h2>
+          <p>
+            Join the early access list, follow the build, and be first to see new Elli demos as the system grows.
+          </p>
+
+          <div class="waitlist-count">Early Access Users: 11</div>
+
+          <form name="elli-waitlist" method="POST" data-netlify="true" action="/thankyou.html" class="waitlist-form">
+            <input type="hidden" name="form-name" value="elli-waitlist">
+            <input type="hidden" name="redirect" value="/thankyou.html">
+
+            <div class="waitlist-form-row">
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email for early access"
+                required
+                class="waitlist-input"
+              >
+
+              <button type="submit" class="btn btn-primary">
+                Join the Waitlist
+              </button>
+
+              <a
+                class="btn btn-secondary"
+                href="https://www.linkedin.com/in/aaron-hastings-81304032b/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Follow the Build
+              </a>
+            </div>
+
+            <small class="growth-tip">Get early demos, architecture updates, and launch access.</small>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-row">
+      <div>© 2026 Elli. Built by Aaron Hastings.</div>
+      <div>Personal AI operating environment • Workflows • Recall • Multi-model orchestration</div>
+    </div>
+  </footer>
+</body>
+</html>
